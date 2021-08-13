@@ -31,6 +31,7 @@ import javax.swing.AbstractAction;
 import javax.swing.JScrollPane;
 import javax.swing.JTabbedPane;
 import javax.swing.JTable;
+import javax.swing.JViewport;
 import javax.swing.KeyStroke;
 import javax.swing.table.AbstractTableModel;
 import javax.swing.table.TableCellEditor;
@@ -481,10 +482,6 @@ public static class EditTable extends JTable {
 		// not necessary because reordering of tabs is not allowed
 		colIndex = convertColumnIndexToModel(colIndex);
 
-		// Only the keyword column has tooltip
-		if (colIndex != 0)
-			return "";
-
 		TableModel model = getModel();
 		Input<?> in = (Input<?>)model.getValueAt(rowIndex, 0);
 		return EditBox.getInputDesc(EditBox.getInstance().getCurrentEntity(), in);
@@ -492,9 +489,19 @@ public static class EditTable extends JTable {
 
 	@Override
 	public Point getToolTipLocation(MouseEvent e) {
-		int row = rowAtPoint(e.getPoint());
-		int y = getCellRect(row, 0, true).getLocation().y;
-		return new Point(col1Width + col2Width, y);
+		if (!(getParent() instanceof JViewport))
+			return null;
+		JViewport viewPort = (JViewport) getParent();
+
+		if (!(viewPort.getParent() instanceof JScrollPane))
+			return null;
+		JScrollPane scrollPane = (JScrollPane) viewPort.getParent();
+
+		if (!(scrollPane.getParent() instanceof JTabbedPane))
+			return null;
+		JTabbedPane tabbedPane = (JTabbedPane) scrollPane.getParent();
+
+		return new Point(tabbedPane.getWidth(), viewPort.getViewPosition().y);
 	}
 
 	@Override
