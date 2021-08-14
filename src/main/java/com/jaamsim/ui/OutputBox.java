@@ -28,6 +28,7 @@ import java.util.ArrayList;
 import javax.swing.AbstractAction;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
+import javax.swing.JViewport;
 import javax.swing.KeyStroke;
 import javax.swing.table.AbstractTableModel;
 import javax.swing.table.TableModel;
@@ -159,11 +160,6 @@ public class OutputBox extends FrameBox {
 		public String getToolTipText(MouseEvent event) {
 			Point p = event.getPoint();
 			int row = rowAtPoint(p);
-			int col = columnAtPoint(p);
-
-			// Only the first column has tooltip
-			if (col != 0)
-				return "";
 
 			if (currentEntity == null ||
 			    row >= entries.size() ||
@@ -177,9 +173,15 @@ public class OutputBox extends FrameBox {
 
 		@Override
 		public Point getToolTipLocation(MouseEvent e) {
-			int row = rowAtPoint(e.getPoint());
-			int y = getCellRect(row, 0, true).getLocation().y;
-			return new Point(getColumnModel().getColumn(0).getWidth(), y);
+			if (!(getParent() instanceof JViewport))
+				return null;
+			JViewport viewPort = (JViewport) getParent();
+
+			if (!(viewPort.getParent() instanceof JScrollPane))
+				return null;
+			JScrollPane scrollPane = (JScrollPane) viewPort.getParent();
+
+			return new Point(scrollPane.getWidth(), viewPort.getViewPosition().y);
 		}
 
 		@Override
